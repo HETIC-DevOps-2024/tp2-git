@@ -562,6 +562,23 @@ De maniere plus generale, `git pull` combine un `git fetch` suivi d'un `git merg
 
 Git `pull` est une maniere plus simple de mettre a jour sa copie locale avec les changements venant d'`origin`.
 
+## Creer volontairement un conflit
+
+Il suffit pour cela que deux personnes travaillent sur les memes lignes d'un fichier. 
+
+Il est facile de creer volontairement un conflit en suivant les etapes:
+
+  - Alice et Bob sont tous les deux a jour avec `origin` avec un `git pull`, et `git merge` si besoin.
+  - Alice change la couleur a la ligne 9 du fichier `my-website/src/css/custom.css`
+  - Alice `git add`, `git commit`, `git push` son changement
+  - De son cote, Bob ignore que Alice a change cette couleur et ne fait PAS de `git fetch` ni `git pull`
+  - Bob change aussi la couleur a la ligne 9 du fichier `my-website/src/css/custom.css`
+  - Bob `git add`, `git commit`, `git push` et se voit confronte a un message d'erreur disant qu'il n'est pas a jour avec `origin`
+  - Bob `git fetch`, `git merge` et Git va lui annoncer qu'il y a un conflit a resoudre pour le fichier `my-website/src/css/custom.css`
+  - C'est alors a Bob, la derniere personne a push, de trancher sur quelle version il faut garder, la derniere de Alice, ou la sienne
+  - Bob doit alors editer le fichier et resoudre le conflit a l'aide des `<<<<<` et `>>>>>` inseres dans le fichier par Git pour lui montrer ou se trouve le conflit.
+  - Une fois le conflit resolu, Bob savegarde le fichier, puis `git add`, `git commit`, `git push` a nouveau
+
 ## Resume d'un cycle de travail avec git
 
   - 1. Commencez toujours par un `git pull`
@@ -572,3 +589,49 @@ Git `pull` est une maniere plus simple de mettre a jour sa copie locale avec les
   - 6. Avant de pousser vod modifications, assurez vous d'etre a jour avec l'`origin`
   - 7. Resolvez les conflicts si il y'en a !
   - 8. Poussez votre/vos commits sur le repo `origin` avec `git push`
+
+## Bonus 1: Deployer docusaurus sur GitHub Pages
+
+Github fournit un hebergement de site statique a chaque utilisateur et chaque repo
+
+Si vous souhaitez deployer un portfolio, site CV ou tout autre site statique, c'est un bon moyen gratuit d'y arriver tout en conservant votre code de maniere versionnee sur GitHub. La seule condition, car il y'en a toujours une c'est que votre repo doit etre publique.
+
+La [documentation](https://docusaurus.io/fr/docs/deployment#deploying-to-github-pages) vous aidera a composer l'URL qu'il va falloir changer dans la configuration de docusaurus, en particulier le bloc suivant:
+
+> Chaque dépôt GitHub est associé à un service GitHub pages. Si le dépôt de déploiement est appelé my-org/my-project (où my-org est le nom de l'organisation ou le nom d'utilisateur), le site déployé apparaîtra à l'adresse https://my-org.github.io/my-projet/. Si le dépôt de déploiement s'appelle my-org/my-org.github.io (le dépôt des pages GitHub de l'organisation), le site apparaîtra sous https://my-org.github.io/.
+
+Il suffit de changer les lignes suivantes dans le fichier `my-website/docusaurus.config.js`:
+
+``` javascript
+  // Set the production url of your site here
+  url: 'https://hetic-devops-2024.github.io',
+  // Set the /<baseUrl>/ pathname under which your site is served
+  // For GitHub pages deployment, it is often '/<projectName>/'
+  baseUrl: '/tp2-git',
+
+  // GitHub pages deployment config.
+  // If you aren't using GitHub pages, you don't need these.
+  organizationName: 'hetic-devops-2024', // Usually your GitHub org/user name.
+  projectName: 'tp2-git', // Usually your repo name.
+```
+
+Pour le deployer sur votre compte, remplacez `hetic-devops-2024` par votre username GitHub et `tp2-git` par votre repo.
+
+Docusaurus est deja pret pour etre deploye facilement. Il suffit de le transformer en site statique avec `npm run build`, et le deployer manuellement avec `npm run deploy`.
+
+Le site est maitnenant disponible de maniere publique sur l'URL https://hetic-devops-2024.github.io/tp2-git.
+
+## Bonus 2: Deployer automatiquement docusaurus a chaque push sur `main`
+
+Une fois de plus la documentation a deja prevu le [deploiement automatique](https://docusaurus.io/fr/docs/deployment#triggering-deployment-with-github-actions) et vous offre un exemple tout pret a etre utilise.
+
+Clickez sur `Fichiers GitHub action` pour voir l'exemple qu'il suffit de copier et coller dans `.github/workflows/deploy.yml` avec quelques changements mineurs:
+
+  - Utilisation de `npm` au lieu de `yarn`
+  - Ajout de `--prefix my-website` et `my-website/build` car notre site est dans un sous repertoire
+
+Une fois ce fichier pousse sur la branche `main` tout prochain changement declanchera un build et un deploiement automatique sur github pages.
+
+Les workflows d'automatisations sont visible dans l'onglet [`Actions`](https://github.com/HETIC-DevOps-2024/tp2-git/actions) tout en haut de l'interface GitHub.
+
+Les definitions de workflows sont ecrit en `YAML` un langage descriptif [tres bien documente](https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions).
